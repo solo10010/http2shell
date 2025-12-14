@@ -1,0 +1,68 @@
+{
+  "name": "http2shell",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b8a9a030-be58-4305-9e1f-f0fea5a37866",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://shell2http.offsec.pw/exec",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "body": "whoami",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "76187909-11c6-468c-b511-20981ddadbeb",
+      "name": "HTTP Request shell2http API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "SMI47jV3Xd4kecci",
+          "name": "Unnamed credential"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request shell2http API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8f983b6d-1348-41e1-b710-7e1ab167ea21",
+  "meta": {
+    "instanceId": "0bc5fefa9058874dadc1d1d910fe0697387793977eaf0330e5c0aee1cc4da426"
+  },
+  "id": "EAxkKGHR27mLcyRt",
+  "tags": []
+}
