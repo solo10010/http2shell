@@ -148,7 +148,7 @@ This guide explains how to send commands to `shell2http` from n8n via HTTP reque
 ## Setting Up an HTTP Request in n8n
 
 - **Method:** `POST`  
-- **URL:** `http://shell2http.offsec.pw/exec`  
+- **URL:** `http://localhost/exec`  
 - **Authentication:**  
   - Credential type → Basic Auth  
   - Username: `rest`  
