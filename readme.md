@@ -3,7 +3,7 @@
 # 🚀 HTTP2Shell
 
 <p align="center">
-  <img src="assets/logo_http2shell.png" alt="http2shell logo">
+  <img src="assets/logo_http2shell.png" alt="http2shell logo" height="350">
 </p>
 
 ## Description
