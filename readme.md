@@ -198,7 +198,7 @@ return files.map(line => ({
 ### You can download this example to import it into your n8n.
 
 <p align="center">
-  <a href="http2shell.json" download>Скачать n8n workflow</a>
+  <a href="assets/http2shell.json" download>Скачать n8n workflow</a>
 </p>
 
 
