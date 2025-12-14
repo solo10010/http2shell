@@ -3,7 +3,7 @@
 # 🚀 HTTP2Shell
 
 <p align="center">
-  <img src="assets/logo_http2shell.png" alt="http2shell logo" width="300">
+  <img src="assets/logo_http2shell.png" alt="http2shell logo">
 </p>
 
 ## Description
@@ -162,7 +162,7 @@ This guide explains how to send commands to `shell2http` from n8n via HTTP reque
     ls -la
 
 <p align="center">
-  <img src="assets/n8n_settings.png" alt="http2shell logo" width="300">
+  <img src="assets/n8n_settings.png" alt="http2shell logo">
 </p>
 
 ---
@@ -199,7 +199,7 @@ return files.map(line => ({
 
 <p align="center">
   <a href="http2shell.json">
-    <img src="assets/n8n_settings.png" alt="Download n8n workflow" width="300">
+    <img src="http2shell.json" alt="Download n8n workflow">
   </a>
 </p>
 
