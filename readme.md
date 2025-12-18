@@ -203,133 +203,72 @@ return files.map(line => ({
   </a>
 </p>
 
+# `/execf` — File-backed execution (HTTP2Shell)
 
-### 🆕 Advanced Execution: `/execf` (Large Data & UTF-8 Safe)
+## What is `/execf`
 
-The `/execf` endpoint is an advanced execution interface designed for:
+`/execf` is an execution endpoint designed to work with **large text inputs**  
+(lines, lists, URLs, words, etc.) that need to be processed by standard Unix tools.
 
-- Large input datasets (thousands of lines and more)
-- Stream-based tools (`grep`, `awk`, `sed`, `waybackurls`, etc.)
-- Safe UTF-8 command execution (including non-ASCII patterns)
-- n8n workflows where standard shell nodes hit output limits
-
-Unlike `/exec`, this endpoint **does not accept commands in plain headers**.  
-All commands **must be passed in Base64 format** using the `xcmd-b64` header.
+It is useful when:
+- The input data is large (hundreds or thousands of lines)
+- Passing data directly as command arguments is inconvenient or impossible
+- You want to use tools like `grep`, `awk`, `sed`, `sort`, `uniq`, `waybackurls`
 
 ---
 
-#### How `/execf` Works
+## How `/execf` works
 
 1. Client sends a **POST** request with a JSON body
 2. Server extracts **all string values from JSON arrays**
-3. Extracted strings are written line-by-line to a temporary file:
+3. These strings are written **line-by-line** into a temporary file:
 
-`/tmp/http2shell-<sha256>.txt`
+   ```
+   /tmp/http2shell-<sha256>.txt
+   ```
 
-4. The path to this file is exported to the shell as:
+4. The file path is exported to the command as an environment variable:
 
-5. The command (decoded from `xcmd-b64`) is executed using the system shell
-6. The server returns a structured JSON response
+   ```bash
+   $textfile
+   ```
+
+5. The server executes the command provided in the `xcmd` HTTP header
+6. The server returns a JSON response with execution results
 
 ---
 
-#### Required Header
+## Request format
+
+### Method
+```
+POST
+```
+
+### Endpoint
+```
+/execf
+```
+
+### Required HTTP header
 
 | Header | Description |
 |------|-------------|
-| `xcmd` | Base64-encoded shell command |
+| `xcmd` | Shell command that uses `$textfile` |
 
----
+Example:
+```text
+cat $textfile | grep test
+```
 
-#### `/execf` Response Format
+### Request body (JSON)
 
+**Recommended format — array of strings**
 ```json
-{
-"textfile": "/tmp/http2shell-acde1234.txt",
-"stdout": "command output\n",
-"stderr": "",
-"code": 0
-}
+["line one", "line two", "test", "another line"]
 ```
 
-| Field	| Description |
-|-------|-------------|
-| textfile |	Path to generated temporary file |
-| stdout |	Command standard output |
-| stderr |	Command error output |
-| code	| Shell exit code |
-
-## Setting Up an HTTP Request in n8n (for `/execf`)
-
-- **Method:** `POST`  
-- **URL:** `http://shell2http.offsec.pw/execf`  
-
-- **Authentication:**  
-  - Credential type → Basic Auth  
-  - Username: `rest`  
-  - Password: `api`  
-
-- **Request Parameters:** DISABLED  
-
-- **Request Headers:** ENABLED  
-  - Header name: `xcmd`  
-  - Header value (example):  
-    ```text
-    cat $textfile | grep test
-    ```
-
-- **Request Body:** ENABLED  
-  - Content type: `Raw`  
-  - Content type value: `application/json`  
-  - Body example (JSON array of lines):  
-    ```json
-    ["line one","line two","test","another line"]
-    ```
-
-<p align="center">
-  <img src="assets/n8n_settings_execf.png" alt="n8n_settings execf ">
-</p>
-
-
-
-## Setting Up an HTTP Request in n8n (for `/execf`)
-
-This section describes how to configure an **n8n HTTP Request node** to work with the `/execf` endpoint, which is designed for **large inputs**, **UTF-8-safe commands**, and **file-backed execution**.
-
----
-
-Query Parameters: ❌ Disabled
-
-URL Parameters: ❌ Disabled
-
-4. Request Headers
-
-Add the following headers:
-
-#### Example: Using /execf with curl
-
-```bash
-CMD='cat $textfile | grep test'
-B64=$(printf '%s' "$CMD" | base64)
-
-curl -u rest:api \
-  -X POST http://127.0.0.1:8007/execf \
-  -H "xcmd-b64: $B64" \
-  -H "Content-Type: application/json" \
-  --data-binary '["one","two","test","three"]'
-```
-
-### Supported Input Formats
-
-/execf accepts multiple JSON input forms:
-
-1. Raw array of strings (recommended)
-```json
-["line one", "line two", "line three"]
-```
-
-2. Nested objects with arrays
-
+**Also supported — nested JSON**
 ```json
 [
   {
@@ -339,39 +278,131 @@ curl -u rest:api \
 ]
 ```
 
-All string elements found inside JSON arrays are written one per line.
+All string elements found inside JSON arrays are written **one per line** into `$textfile`.
 
-#### Execution Timeouts
+---
 
-To prevent hanging connections and runaway commands, HTTP2Shell enforces time limits.
+## Response format
 
-| Parameter |	Description |	Default |
-|-----------|-------------|---------|
-| BODY_TIMEOUT |	Max seconds to wait for request body |	10 |
-| CMD_TIMEOUT |	Max seconds to allow command execution |	20 |
-
-#### Timeout Responses
-
-| Scenario |	HTTP Code |	JSON Response |
-|----------|------------|---------------|
-| Body read | timeout	408	| { "error": "body read timeout" } |
-| Command | timeout	504 |	{ "stderr": "command timeout", "code": 504 } |
-
-#### n8n Usage (Recommended)
-
-##### HTTP Request Node
-
-  Method: POST
-  URL: http://127.0.0.1:8007/execf
-  Authentication: Basic Auth
-  Headers:
-  Content-Type: application/json
-  xcmd-b64: {{ $json.xcmd_b64 }}
-
-#### Body (RAW JSON):
 ```json
-{{ $json.lines }}
+{
+  "textfile": "/tmp/http2shell-acde1234.txt",
+  "stdout": "command output\n",
+  "stderr": "",
+  "code": 0
+}
 ```
+
+| Field | Description |
+|------|-------------|
+| `textfile` | Path to temporary file |
+| `stdout` | Standard output of the command |
+| `stderr` | Standard error output |
+| `code` | Command exit code |
+
+---
+
+## Examples (curl)
+
+### Grep example
+```bash
+curl -u rest:api \
+  -X POST http://127.0.0.1:8007/execf \
+  -H 'Content-Type: application/json' \
+  -H 'xcmd: cat $textfile | grep test' \
+  --data-binary '["one","two","test","three"]'
+```
+
+### Sort and unique
+```bash
+curl -u rest:api \
+  -X POST http://127.0.0.1:8007/execf \
+  -H 'Content-Type: application/json' \
+  -H 'xcmd: sort -u $textfile' \
+  --data-binary '["b","a","b","c"]'
+```
+
+### Count lines
+```bash
+curl -u rest:api \
+  -X POST http://127.0.0.1:8007/execf \
+  -H 'Content-Type: application/json' \
+  -H 'xcmd: wc -l < $textfile' \
+  --data-binary '["a","b","c"]'
+```
+
+---
+
+## n8n setup (short)
+
+### HTTP Request node
+
+- **Method:** POST
+- **URL:** `http://127.0.0.1:8007/execf`
+- **Authentication:** Basic Auth (`rest` / `api`)
+- **Headers:**
+  - `Content-Type: application/json`
+  - `xcmd: cat $textfile | grep test`
+- **Body:**
+  - Type: `Raw`
+  - Content-Type: `application/json`
+  - Value:
+    ```json
+    {{ $json.lines }}
+    ```
+
+
+<p align="center">
+  <img src="assets/n8n_settings_execf.png" alt="http2shell logo" >
+</p>
+
+---
+
+## n8n example: generate lines (Code node)
+
+```javascript
+const text = `one
+two
+three
+test
+four`;
+
+const lines = text
+  .split('\n')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+return [{
+  json: {
+    lines,
+    count: lines.length
+  }
+}];
+```
+
+---
+
+## Timeouts
+
+The server enforces time limits:
+
+| Parameter | Description | Default |
+|----------|-------------|---------|
+| `BODY_TIMEOUT` | Request body read timeout | 10s |
+| `CMD_TIMEOUT` | Command execution timeout | 20s |
+
+- Body timeout → HTTP 408
+- Command timeout → HTTP 504
+
+---
+
+## Notes
+
+- `xcmd` must be ASCII-only (HTTP header limitation)
+- Temporary file is removed after execution (current implementation)
+- `/execf` is intended for trusted environments only
+
+---
 
 ## Important Notes
 
@@ -381,4 +412,6 @@ To prevent hanging connections and runaway commands, HTTP2Shell enforces time li
 
 
 ## ⚠️ Security notice:
-Run HTTP2Shell only in trusted environments. Never expose it directly to the public internet without additional protections (firewall, VPN, reverse proxy, IP filtering).
+  - Run HTTP2Shell only in trusted environments. Never expose it directly to the public internet without additional protections (firewall, VPN, reverse proxy, IP filtering).
+  - `/execf` allows arbitrary command execution.  
+  Run HTTP2Shell **only in trusted environments** and never expose it directly to the public internet.
