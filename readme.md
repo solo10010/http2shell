@@ -1,5 +1,3 @@
-
-
 # 🚀 HTTP2Shell
 
 <p align="center">
@@ -36,6 +34,10 @@ Key features:
 ### Dependencies
 - `bash`
 - `socat`
+- `jq`
+- `timeout`
+- `dd`
+- `sha256sum`
 - Standard Unix utilities (`uptime`, `lsblk`, etc.)
 
 ### Install socat
@@ -82,14 +84,17 @@ chmod +x http2shell.sh
  ### Available options
 
  ```bash
-    -h, --help              Show help
-    -ip, --ip <ip>          Listen IP
-    -port, --port <port>    Listen port
-    -u, --user <user>       Basic auth user
-    -p, --pass <pass>       Basic auth password
-    --no-exec               Disable /exec endpoint
-    -e, --endpoint          Add custom POST endpoint
-    --no-color              Disable colored logs
+    -h, --help                      Show help
+    -ip, --ip <ip>                  Listen IP (default: 127.0.0.1)
+    -port, --port <port>            Listen port (default: 8007)
+    -u, --user <user>               Basic auth user (default: rest)
+    -p, --pass <pass>               Basic auth password (default: api)
+    -s, --shell <path>              Shell for command execution (default: auto-detect)
+    --no-exec                       Disable /exec and /execf endpoints
+    -e, --endpoint <uri> <command>  Add custom POST endpoint
+    --no-color                      Disable colored logs
+    --cmd-timeout <sec>             Timeout for xcmd execution (default: 20)
+    --body-timeout <sec>            Timeout for reading request body (default: 10)
 ```
 
 ### Usage Examples
@@ -118,13 +123,13 @@ curl -u rest:api -X POST http://127.0.0.1:8007/exec \
 Disable remote execution
 
 ```bash
-./api-shell.sh --no-exec
+./http2shell.sh --no-exec
 ```
 
 Add custom endpoint
 
 ```bash
-./api-shell.sh --endpoint /api/hello "ps aux"
+./http2shell.sh --endpoint /api/hello "ps aux"
 ```
 
 Call it:
@@ -133,10 +138,22 @@ Call it:
 curl -u rest:api -X POST http://127.0.0.1:8007/api/hello
 ```
 
+Use custom shell
+
+```bash
+./http2shell.sh --shell /bin/zsh
+```
+
+Set custom timeouts
+
+```bash
+./http2shell.sh --cmd-timeout 30 --body-timeout 15
+```
+
 Disable colored output
 
 ```bash
-./api-shell.sh --no-color
+./http2shell.sh --no-color
 ```
 
 ### Usage Examples N8N
@@ -386,13 +403,22 @@ return [{
 
 The server enforces time limits:
 
-| Parameter | Description | Default |
-|----------|-------------|---------|
-| `BODY_TIMEOUT` | Request body read timeout | 10s |
-| `CMD_TIMEOUT` | Command execution timeout | 20s |
+| Parameter | Description | Default | Command-line option |
+|----------|-------------|---------|---------------------|
+| `BODY_TIMEOUT` | Request body read timeout | 10s | `--body-timeout <sec>` |
+| `CMD_TIMEOUT` | Command execution timeout | 20s | `--cmd-timeout <sec>` |
 
 - Body timeout → HTTP 408
 - Command timeout → HTTP 504
+
+**Examples:**
+```bash
+# Set longer timeouts for heavy operations
+./http2shell.sh --cmd-timeout 60 --body-timeout 30
+
+# Set shorter timeouts for fast responses
+./http2shell.sh --cmd-timeout 5 --body-timeout 3
+```
 
 ---
 
