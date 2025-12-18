@@ -3,7 +3,7 @@
 # 🚀 HTTP2Shell
 
 <p align="center">
-  <img src="assets/logo_http2shell.png" alt="http2shell logo" height="350">
+  <img src="assets/logo_http2shell.png" alt="http2shell logo">
 </p>
 
 ## Description
@@ -162,7 +162,7 @@ This guide explains how to send commands to `shell2http` from n8n via HTTP reque
     ls -la
 
 <p align="center">
-  <img src="assets/n8n_settings.png" alt="http2shell logo">
+  <img src="assets/n8n_settings.png" alt="http2shell n8n settings">
 </p>
 
 ---
@@ -201,7 +201,6 @@ return files.map(line => ({
   <a href="assets/http2shell.json" download>Скачать n8n workflow</a>
 </p>
 
-
 ## Important Notes
 
 - **Do not use query parameters** (e.g., `?exec=ls`) — the server only reads the **POST request body**.  
@@ -209,5 +208,5 @@ return files.map(line => ({
 - For commands producing large output, `shell2http` is better than standard n8n shell nodes, as it **has no 1 MB output limit**.
 
 
-⚠️ Security notice:
+## ⚠️ Security notice:
 Run HTTP2Shell only in trusted environments. Never expose it directly to the public internet without additional protections (firewall, VPN, reverse proxy, IP filtering).
