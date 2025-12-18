@@ -412,6 +412,4 @@ The server enforces time limits:
 
 
 ## ⚠️ Security notice:
-  - Run HTTP2Shell only in trusted environments. Never expose it directly to the public internet without additional protections (firewall, VPN, reverse proxy, IP filtering).
-  - `/execf` allows arbitrary command execution.  
-  Run HTTP2Shell **only in trusted environments** and never expose it directly to the public internet.
+- Run HTTP2Shell only in trusted environments. Never expose it directly to the public internet without additional protections (firewall, VPN, reverse proxy, IP filtering).
